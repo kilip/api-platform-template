@@ -2,7 +2,7 @@ version: '3.4'
 services:
   php:
     container_name: api_template.php
-    image: ghcr.io/kilip/api-template/php
+    image: ghcr.io/kilip/api-platform-template/php
     build:
       context: ./
       target: api_template_php
@@ -21,7 +21,7 @@ services:
       start_period: 30s
 
   caddy:
-    image: ghcr.io/kilip/api-template/caddy
+    image: ghcr.io/kilip/api-platform-template/caddy
     container_name: api_template.caddy
     build:
       context: ./
