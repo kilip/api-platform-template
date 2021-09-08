@@ -131,7 +131,7 @@ jobs:
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
-        run: ./doyo up --build -d
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
       - name: Wait for services
         run: |
           while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
@@ -150,14 +150,6 @@ jobs:
         run: curl -v -o /dev/null http://localhost
       - name: Check HTTPS reachability
         run: curl  -vk -o /dev/null https://localhost
-      - name: Prepare Tests
-        run: |
-          ./doyo symfony -e test doctrine:database:create
-          ./doyo symfony -e test doctrine:migrations:migrate -n
-          ./doyo symfony -e test doctrine:schema:create
-      - name: Run Tests
-        run: |
-          ./doyo behat
       - name: Stop services
         run: docker-compose stop
       - name: Lists existing image
@@ -188,7 +180,7 @@ jobs:
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
-        run: ./doyo up --build -d
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
       - name: Wait for services
         run: |
           while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
