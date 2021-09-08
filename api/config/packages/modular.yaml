@@ -1,0 +1,4 @@
+doyo_modular:
+  use_annotation: false
+  doctrine:
+    entity_dir: Model

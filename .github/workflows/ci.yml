@@ -1,0 +1,179 @@
+name: CI
+on:
+  push:
+    branches: ['main']
+    tags:
+  pull_request:
+    branches: ['main']
+
+jobs:
+  php-cs-fixer:
+    name: PHP-CS-Fixer (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        php:
+          - '8.0'
+      fail-fast: false
+    env:
+      PHP_CS_FIXER_FUTURE_MODE: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl, bcmath, curl, openssl, mbstring
+          ini-values: memory_limit=-1
+          tools: pecl, composer
+          coverage: none
+      - name: Cache Composer cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache
+          key: composer-cache-php${{ matrix.php }}
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+        working-directory: api
+      - name: Run PHP-CS-Fixer
+        run: ./vendor/bin/php-cs-fixer fix --dry-run --diff --ansi
+        working-directory: api
+
+  # psalm
+  psalm:
+    name: Psalm (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        php:
+          - '8.0'
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl, bcmath, curl, openssl, mbstring
+          ini-values: memory_limit=-1
+          tools: pecl, composer
+          coverage: none
+      - name: Cache Composer cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache
+          key: composer-cache-php${{ matrix.php }}
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+        working-directory: api
+      - name: Run Psalm Tests
+        run: ./vendor/bin/psalm --threads=2 --shepherd --stats
+        working-directory: api
+
+  # phpstan
+  phpstan:
+    name: PHPStan (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        php:
+          - '8.0'
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl, bcmath, curl, openssl, mbstring
+          ini-values: memory_limit=-1
+          tools: pecl, composer
+          coverage: none
+      - name: Cache Composer cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache
+          key: composer-cache-php${{ matrix.php }}
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+        working-directory: api
+      - name: Run PHP Stan Analysis
+        run: ./vendor/bin/phpstan analyse --no-interaction --no-progress --ansi
+        working-directory: api
+
+  # build
+  build:
+    name: Build (Build Docker Image)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: |
+            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/api/Dockerfile','**/pwa/Dockerfile') }}
+          restore-keys: ${{ runner.os }}-buildx-
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Pull images
+        run: docker-compose pull --ignore-pull-failures || true
+      - name: Start services
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+      - name: Wait for services
+        run: |
+          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
+            case $status in
+              starting) sleep 1;;
+              healthy) exit 0;;
+              unhealthy)
+                docker-compose ps
+                docker-compose logs
+                exit 1
+              ;;
+            esac
+          done
+          exit 1
+      - name: Check HTTP reachability
+        run: curl -v -o /dev/null http://localhost
+      - name: Check HTTPS reachability
+        run: curl  -vk -o /dev/null https://localhost
+      - name: Stop services
+        run: docker-compose stop
+      - name: Lists existing image
+        run: docker image ls
+        continue-on-error: true
+      - name: Push image
+        run: |
+          docker push ghcr.io/kilip/open-sid/php-dev
+          docker push ghcr.io/kilip/open-sid/caddy-dev
+          docker push ghcr.io/kilip/open-sid/nuxt-dev
+        if: github.ref == 'refs/heads/main'
+
+
+  # deploy
+  #deploy:
+  #  if: github.ref == 'refs/heads/main'
+  #  needs:
+  #    - psalm
+  #    - phpstan
+  #    - php-cs-fixer
+  #  runs-on: ubuntu-latest
+  #  environment:
+  #    name: production
+  #  steps:
+  #    - uses: actions/checkout@v2
+  #    - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+  #      with:
+  #        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+  #        heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+  #        heroku_email: ${{secrets.HEROKU_EMAIL}}
+  #        appdir: "api"

@@ -1,0 +1,4 @@
+suites:
+  opensid:
+    namespace: App
+    psr4_prefix: App

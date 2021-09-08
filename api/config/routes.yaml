@@ -1,0 +1,7 @@
+#index:
+#    path: /
+#    controller: App\Controller\DefaultController::index
+
+doyo_modular:
+  resource: .
+  type: doyo_modular

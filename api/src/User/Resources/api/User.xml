@@ -1,0 +1,19 @@
+<resources xmlns="https://api-platform.com/schema/metadata">
+    <resource class="App\User\Model\User">
+        <collectionOperations>
+            <collectionOperation name="get">
+                <attribute name="normalization_context">
+                    <attribute name="groups">admin:user:read</attribute>
+                </attribute>
+            </collectionOperation>
+            <collectionOperation name="post">
+                <attribute name="denormalization_context">
+                    <attribute name="groups">admin:user:write</attribute>
+                </attribute>
+            </collectionOperation>
+        </collectionOperations>
+        <itemOperations>
+
+        </itemOperations>
+    </resource>
+</resources>
