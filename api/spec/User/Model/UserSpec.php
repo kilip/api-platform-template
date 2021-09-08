@@ -16,6 +16,14 @@ use PhpSpec\ObjectBehavior;
 
 class UserSpec extends ObjectBehavior
 {
+    public function let()
+    {
+        $this->beConstructedWith(
+            'test',
+            'test@example.com'
+        );
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(User::class);

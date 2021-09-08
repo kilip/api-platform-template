@@ -1,10 +1,14 @@
 name: CI
+
 on:
   push:
     branches: ['main']
     tags:
   pull_request:
     branches: ['main']
+
+env:
+  DOYO_CI: 1
 
 jobs:
   php-cs-fixer:
@@ -120,7 +124,7 @@ jobs:
         continue-on-error: true
         with:
           key: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/api/Dockerfile','**/pwa/Dockerfile') }}
+            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/pwa/Dockerfile') }}
           restore-keys: ${{ runner.os }}-buildx-
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -158,14 +162,174 @@ jobs:
           docker push ghcr.io/kilip/open-sid/nuxt-dev
         if: github.ref == 'refs/heads/main'
 
+  behat:
+    needs:
+      - php-cs-fixer
+      - psalm
+      - phpstan
+      - build
+    name: 'Behat Testing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: |
+            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/pwa/Dockerfile') }}
+          restore-keys: ${{ runner.os }}-buildx-
+      - name: Pull images
+        run: docker-compose pull --ignore-pull-failures || true
+      - name: Start services
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+      - name: Wait for services
+        run: |
+          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
+            case $status in
+              starting) sleep 1;;
+              healthy) exit 0;;
+              unhealthy)
+                docker-compose ps
+                docker-compose logs
+                exit 1
+              ;;
+            esac
+          done
+          exit 1
+      - name: Prepare Tests
+        run: |
+          ./doyo symfony -e test doctrine:database:create
+          ./doyo symfony -e test doctrine:migrations:migrate -n
+          ./doyo symfony -e test doctrine:schema:create
+      - name: Run Tests
+        run: ./doyo behat --colors
+      - name: Stop services
+        run: docker-compose stop
+      - name: Upload coverage results to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./api/build/clover/coverage-behat.xml
+          name: behat-php
+          flags: behat
+          fail_ci_if_error: true
 
+  phpunit:
+    needs:
+      - php-cs-fixer
+      - psalm
+      - phpstan
+      - build
+    name: 'PHPUnit Testing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: |
+            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/pwa/Dockerfile') }}
+          restore-keys: ${{ runner.os }}-buildx-
+      - name: Pull images
+        run: docker-compose pull --ignore-pull-failures || true
+      - name: Start services
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+      - name: Wait for services
+        run: |
+          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
+            case $status in
+              starting) sleep 1;;
+              healthy) exit 0;;
+              unhealthy)
+                docker-compose ps
+                docker-compose logs
+                exit 1
+              ;;
+            esac
+          done
+          exit 1
+      - name: Prepare Tests
+        run: |
+          ./doyo symfony -e test doctrine:database:create
+          ./doyo symfony -e test doctrine:migrations:migrate -n
+          ./doyo symfony -e test doctrine:schema:create
+      - name: Run Tests
+        run: ./doyo phpunit --colors --coverage-clover build/logs/clover.xml
+      - name: Stop services
+        run: docker-compose stop
+      - name: Upload coverage results to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./api/build/logs/clover.xml
+          name: phpunit-php
+          flags: phpunit
+          fail_ci_if_error: true
+
+  phpspec:
+    needs:
+      - php-cs-fixer
+      - psalm
+      - phpstan
+      - build
+    name: 'PHPSpec Testing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: |
+            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/pwa/Dockerfile') }}
+          restore-keys: ${{ runner.os }}-buildx-
+      - name: Pull images
+        run: docker-compose pull --ignore-pull-failures || true
+      - name: Start services
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+      - name: Wait for services
+        run: |
+          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
+            case $status in
+              starting) sleep 1;;
+              healthy) exit 0;;
+              unhealthy)
+                docker-compose ps
+                docker-compose logs
+                exit 1
+              ;;
+            esac
+          done
+          exit 1
+      - name: Prepare Tests
+        run: |
+          ./doyo symfony -e test doctrine:database:create
+          ./doyo symfony -e test doctrine:migrations:migrate -n
+          ./doyo symfony -e test doctrine:schema:create
+      - name: Run Tests
+        run: ./doyo phpspec run --ansi -fpretty -c phpspec.coverage.yml
+      - name: Stop services
+        run: docker-compose stop
+      - name: Upload coverage results to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./api/build/logs/phpspec.xml
+          name: phpspec-php
+          flags: phpspec
+          fail_ci_if_error: true
   # deploy
   #deploy:
   #  if: github.ref == 'refs/heads/main'
   #  needs:
-  #    - psalm
-  #    - phpstan
-  #    - php-cs-fixer
+  #    - phpspec
+  #    - phpunit
+  #    - behat
   #  runs-on: ubuntu-latest
   #  environment:
   #    name: production

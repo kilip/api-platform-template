@@ -1,7 +1,7 @@
 suites:
-  modular_bundle:
-    namespace: Doyo\Bundle\Modular
-    psr4_prefix: Doyo\Bundle\Modular
+  api_template:
+    namespace: App
+    psr4_prefix: App
 extensions:
   FriendsOfPhpSpec\PhpSpec\CodeCoverage\CodeCoverageExtension:
     whitelist:
