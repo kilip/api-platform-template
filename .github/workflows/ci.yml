@@ -207,11 +207,9 @@ jobs:
       - name: Run Tests
         run: ./doyo behat --colors
       - name: test
-        run: ls -l ./build/clover
+        run: ls -l ./api/build/clover
       - name: Stop services
         run: docker-compose stop
-      - name: Lists existing image
-        run: docker image ls
 
   # deploy
   #deploy:
