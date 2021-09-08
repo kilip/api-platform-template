@@ -41,6 +41,10 @@ FROM api_template_pwa_common AS api_template_pwa_prod
 ENV NODE_ENV production
 ARG NEXT_PUBLIC_ENTRYPOINT
 
+COPY ./pwa/package.json ./pwa/yarn.lock ./
+
+COPY ./pwa ./
+
 RUN set -eux; \
 	yarn build
 
