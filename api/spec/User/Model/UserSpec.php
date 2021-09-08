@@ -16,7 +16,7 @@ use PhpSpec\ObjectBehavior;
 
 class UserSpec extends ObjectBehavior
 {
-    function let()
+    public function let()
     {
         $this->beConstructedWith(
             'test',
