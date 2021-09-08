@@ -146,6 +146,14 @@ jobs:
         run: curl -v -o /dev/null http://localhost
       - name: Check HTTPS reachability
         run: curl  -vk -o /dev/null https://localhost
+      - name: Prepare Tests
+        run: |
+          ./doyo symfony -e test doctrine:database:create
+          ./doyo symfony -e test doctrine:migrations:migrate -n
+          ./doyo symfony -e test doctrine:schema:create
+      - name: Run Tests
+        run: |
+          ./doyo behat
       - name: Stop services
         run: docker-compose stop
       - name: Lists existing image

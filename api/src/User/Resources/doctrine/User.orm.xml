@@ -5,6 +5,6 @@
         </id>
         <field name="username"/>
         <field name="email"/>
-        <field name="password"/>
+        <field name="password" nullable="true"/>
     </entity>
 </doctrine-mapping>

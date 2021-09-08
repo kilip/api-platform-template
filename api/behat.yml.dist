@@ -1,0 +1,20 @@
+default:
+  suites:
+    default:
+      contexts:
+        - behatch:context:json
+        - behatch:context:table
+        - behatch:context:rest
+        - Tests\App\Behat\UserContext
+        - 'Behat\MinkExtension\Context\MinkContext'
+
+  extensions:
+    FriendsOfBehat\SymfonyExtension:
+      bootstrap: './tests/bootstrap.php'
+    Behat\MinkExtension:
+      base_url: 'http://localhost/'
+      files_path: 'features/files'
+      sessions:
+        default:
+          symfony: ~
+    Behatch\Extension: ~
