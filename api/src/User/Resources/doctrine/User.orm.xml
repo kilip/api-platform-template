@@ -3,6 +3,7 @@
         <id name="id">
         </id>
         <field name="username"/>
+        <field name="email"/>
         <field name="password"/>
     </entity>
 </doctrine-mapping>

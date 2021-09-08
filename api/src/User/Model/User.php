@@ -15,12 +15,7 @@ class User
 {
     protected string $id;
     protected string $username;
-    protected string $password;
     protected string $email;
-    protected bool $active;
-    protected string $nama;
-    protected string $company;
-    protected string $phone;
-    protected string $foto;
-    protected string $session;
+    protected string $password;
+    protected string $plainPassword;
 }
