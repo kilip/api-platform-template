@@ -181,6 +181,8 @@ jobs:
           key: |
             ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
@@ -235,6 +237,8 @@ jobs:
           key: |
             ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
@@ -289,6 +293,8 @@ jobs:
           key: |
             ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
@@ -343,6 +349,8 @@ jobs:
           key: |
             ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
