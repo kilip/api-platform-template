@@ -1,7 +1,6 @@
 version: '3.4'
 services:
   php:
-    image: ghcr.io/kilip/api-platform-template/php-dev
     volumes:
       - ./api:/srv/api:rw,cached
       - ./docker/php/conf.d/php.dev.ini:/usr/local/etc/php/conf.d/api_template.ini
@@ -11,7 +10,6 @@ services:
       APP_ENV: dev
       DATABASE_URL: 'postgresql://api_template:api_template@database:5432/api_template?serverVersion=13&charset=utf8'
   caddy:
-    image: ghcr.io/kilip/api-platform-template/caddy-dev
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./api/public:/srv/api/public:ro
