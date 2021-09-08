@@ -159,6 +159,7 @@ jobs:
         run: |
           docker push ghcr.io/kilip/api-platform-template/php-dev
           docker push ghcr.io/kilip/api-platform-template/caddy-dev
+          docker push ghcr.io/kilip/api-platform-template/pwa-dev
         if: github.ref == 'refs/heads/main'
 
   behat:
