@@ -202,6 +202,8 @@ jobs:
           ./doyo symfony -e test doctrine:schema:create
       - name: Run Tests
         run: ./doyo behat --colors
+      - name: test
+        run: ls -l ./build/clover
       - name: Stop services
         run: docker-compose stop
       - name: Lists existing image
