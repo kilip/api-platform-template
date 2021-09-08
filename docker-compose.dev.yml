@@ -15,5 +15,6 @@ services:
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./api/public:/srv/api/public:ro
+      - ./build:/srv/api/build:rw
     environment:
       MERCURE_EXTRA_DIRECTIVES: demo
