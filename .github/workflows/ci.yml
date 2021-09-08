@@ -124,7 +124,7 @@ jobs:
         continue-on-error: true
         with:
           key: |
-            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile') }}
+            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -179,7 +179,7 @@ jobs:
         continue-on-error: true
         with:
           key: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile') }}
+            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
@@ -233,7 +233,7 @@ jobs:
         continue-on-error: true
         with:
           key: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile') }}
+            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
@@ -287,7 +287,7 @@ jobs:
         continue-on-error: true
         with:
           key: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile') }}
+            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
@@ -341,7 +341,7 @@ jobs:
         continue-on-error: true
         with:
           key: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile') }}
+            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
           restore-keys: ${{ runner.os }}-buildx-
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
