@@ -1,74 +1,84 @@
 version: '3.4'
 services:
-  php:
-    container_name: api_template.php
-    image: ghcr.io/kilip/api-platform-template/php
-    build:
-      context: ./
-      target: api_template_php
-      dockerfile: docker/Dockerfile
-    depends_on:
-      - database
-    restart: unless-stopped
-    volumes:
-      - php_socket:/var/run/php
-    ports:
-      - "3306:3306"
-    healthcheck:
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 30s
+    php:
+        container_name: api_template.php
+        image: ghcr.io/kilip/api-platform-template/php-dev
+        build:
+            context: ./
+            target: api_template_php
+            dockerfile: docker/Dockerfile
+        depends_on:
+            - database
+        restart: unless-stopped
+        volumes:
+            - php_socket:/var/run/php
+        ports:
+            - "3306:3306"
+        healthcheck:
+            interval: 10s
+            timeout: 3s
+            retries: 3
+            start_period: 30s
 
-  caddy:
-    image: ghcr.io/kilip/api-platform-template/caddy
-    container_name: api_template.caddy
-    build:
-      context: ./
-      target: api_template_caddy
-      dockerfile: docker/Dockerfile
-    depends_on:
-      - php
-      #- pwa
-    environment:
-      #PWA_UPSTREAM: pwa:3000
-      SERVER_NAME: ${SERVER_NAME:-localhost, caddy:80}
-      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_PUBLISHER_JWT_KEY:-!ChangeMe!}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_SUBSCRIBER_JWT_KEY:-!ChangeMe!}
-    restart: unless-stopped
-    volumes:
-      - php_socket:/var/run/php
-      - caddy_data:/data
-      - caddy_config:/config
-    ports:
-      # HTTP
-      - target: 80
-        published: 80
-        protocol: tcp
-      # HTTPS
-      - target: 443
-        published: 443
-        protocol: tcp
-      # HTTP/3
-      - target: 443
-        published: 443
-        protocol: udp
+    caddy:
+        image: ghcr.io/kilip/api-platform-template/caddy-dev
+        container_name: api_template.caddy
+        build:
+            context: ./
+            target: api_template_caddy
+            dockerfile: docker/Dockerfile
+        depends_on:
+            - php
+            - pwa
+        environment:
+            #PWA_UPSTREAM: pwa:3000
+            SERVER_NAME: ${SERVER_NAME:-localhost, caddy:80}
+            MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_PUBLISHER_JWT_KEY:-!ChangeMe!}
+            MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_SUBSCRIBER_JWT_KEY:-!ChangeMe!}
+        restart: unless-stopped
+        volumes:
+            - php_socket:/var/run/php
+            - caddy_data:/data
+            - caddy_config:/config
+        ports:
+            # HTTP
+            - target: 80
+              published: 80
+              protocol: tcp
+            # HTTPS
+            - target: 443
+              published: 443
+              protocol: tcp
+            # HTTP/3
+            - target: 443
+              published: 443
+              protocol: udp
 
-  database:
-    container_name: api_template.database
-    image: postgres
-    environment:
-      - POSTGRES_DB=api_template
-      - POSTGRES_PASSWORD=api_template
-      - POSTGRES_USER=api_template
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data:rw
-      - ./docker/postgres/entrypoint:/docker-entrypoint-init.db
+    pwa:
+        build:
+            context: ./
+            target: api_template_pwa_dev
+            dockerfile: ./docker/pwa/Dockerfile
+        environment:
+            API_TEMPLATE_CLIENT_GENERATOR_ENTRYPOINT: http://caddy
+            NEXT_PUBLIC_ENTRYPOINT: http://caddy
+        volumes:
+            - ./pwa:/usr/src/pwa:rw,cached
+    database:
+        container_name: api_template.database
+        image: postgres
+        environment:
+            - POSTGRES_DB=api_template
+            - POSTGRES_PASSWORD=api_template
+            - POSTGRES_USER=api_template
+        ports:
+            - "5432:5432"
+        volumes:
+            - db_data:/var/lib/postgresql/data:rw
+            - ./docker/postgres/entrypoint:/docker-entrypoint-init.db
 
 volumes:
-  php_socket:
-  caddy_config:
-  caddy_data:
-  db_data:
+    php_socket:
+    caddy_config:
+    caddy_data:
+    db_data:
