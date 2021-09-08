@@ -184,7 +184,7 @@ jobs:
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
       - name: Wait for services
         run: |
           while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
@@ -238,7 +238,7 @@ jobs:
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
       - name: Wait for services
         run: |
           while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
@@ -292,7 +292,7 @@ jobs:
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
       - name: Wait for services
         run: |
           while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
@@ -346,7 +346,7 @@ jobs:
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
       - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
       - name: Wait for services
         run: |
           while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
