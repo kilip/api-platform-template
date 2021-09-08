@@ -157,9 +157,8 @@ jobs:
         continue-on-error: true
       - name: Push image
         run: |
-          docker push ghcr.io/kilip/open-sid/php-dev
-          docker push ghcr.io/kilip/open-sid/caddy-dev
-          docker push ghcr.io/kilip/open-sid/nuxt-dev
+          docker push ghcr.io/kilip/api-platform-template/php-dev
+          docker push ghcr.io/kilip/api-platform-template/caddy-dev
         if: github.ref == 'refs/heads/main'
 
   behat:
