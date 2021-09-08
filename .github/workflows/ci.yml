@@ -126,17 +126,17 @@ jobs:
             coverage: true
       fail-fast: false
     env:
-      DATABASE_URL: postgres://opensid:opensid@localhost/opensid
-      PGPASSWORD: opensid
+      DATABASE_URL: postgres://api_template:api_template@localhost/api_template
+      PGPASSWORD: api_template
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup postgres
         run: |
           sudo systemctl start postgresql
-          sudo -u postgres psql -d template1 -c "CREATE USER opensid WITH PASSWORD 'opensid' CREATEDB"
-          createdb -h localhost -p 5432 -U opensid opensid
-          pg_isready -d opensid -h localhost -p 5432 -U opensid
+          sudo -u postgres psql -d template1 -c "CREATE USER api_template WITH PASSWORD 'api_template' CREATEDB"
+          createdb -h localhost -p 5432 -U api_template api_template
+          pg_isready -d api_template -h localhost -p 5432 -U api_template
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -200,17 +200,17 @@ jobs:
             coverage: true
       fail-fast: false
     env:
-      DATABASE_URL: postgres://opensid:opensid@localhost/opensid
-      PGPASSWORD: opensid
+      DATABASE_URL: postgres://api_template:api_template@localhost/api_template
+      PGPASSWORD: api_template
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup postgres
         run: |
           sudo systemctl start postgresql
-          sudo -u postgres psql -d template1 -c "CREATE USER opensid WITH PASSWORD 'opensid' CREATEDB"
-          createdb -h localhost -p 5432 -U opensid opensid
-          pg_isready -d opensid -h localhost -p 5432 -U opensid
+          sudo -u postgres psql -d template1 -c "CREATE USER api_template WITH PASSWORD 'api_template' CREATEDB"
+          createdb -h localhost -p 5432 -U api_template api_template
+          pg_isready -d api_template -h localhost -p 5432 -U api_template
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -274,17 +274,17 @@ jobs:
             coverage: true
       fail-fast: false
     env:
-      DATABASE_URL: postgres://opensid:opensid@localhost/opensid
-      PGPASSWORD: opensid
+      DATABASE_URL: postgres://api_template:api_template@localhost/api_template
+      PGPASSWORD: api_template
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup postgres
         run: |
           sudo systemctl start postgresql
-          sudo -u postgres psql -d template1 -c "CREATE USER opensid WITH PASSWORD 'opensid' CREATEDB"
-          createdb -h localhost -p 5432 -U opensid opensid
-          pg_isready -d opensid -h localhost -p 5432 -U opensid
+          sudo -u postgres psql -d template1 -c "CREATE USER api_template WITH PASSWORD 'api_template' CREATEDB"
+          createdb -h localhost -p 5432 -U api_template api_template
+          pg_isready -d api_template -h localhost -p 5432 -U api_template
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
