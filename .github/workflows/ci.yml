@@ -1,10 +1,14 @@
 name: CI
+
 on:
   push:
     branches: ['main']
     tags:
   pull_request:
     branches: ['main']
+
+env:
+  DOYO_CI: 1
 
 jobs:
   php-cs-fixer:
