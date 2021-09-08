@@ -55,17 +55,16 @@ services:
               protocol: udp
 
     pwa:
-        image: ghcr.io/kilip/api-platform-template/pwa-dev
+        image: ghcr.io/kilip/api-platform-template/pwa
         container_name: api_template.pwa
         build:
             context: ./
-            target: api_template_pwa_dev
+            target: api_template_pwa_prod
             dockerfile: ./docker/pwa/Dockerfile
         environment:
             API_TEMPLATE_CLIENT_GENERATOR_ENTRYPOINT: http://caddy
             NEXT_PUBLIC_ENTRYPOINT: http://caddy
-        volumes:
-            - ./pwa:/usr/src/pwa:rw,cached
+
     database:
         container_name: api_template.database
         image: postgres

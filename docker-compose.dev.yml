@@ -16,3 +16,12 @@ services:
       - ./api/build:/srv/api/build:rw
     environment:
       MERCURE_EXTRA_DIRECTIVES: demo
+
+  pwa:
+    image: ghcr.io/kilip/api-platform-template/pwa-dev
+    build:
+      context: ./
+      target: api_template_pwa_dev
+      dockerfile: ./docker/pwa/Dockerfile
+    volumes:
+      - ./pwa:/usr/src/pwa:rw,cached
