@@ -9,4 +9,4 @@ extensions:
     format:
       - clover
     output:
-      clover: build/logs/phpspec.xml
+      clover: build/logs/coverage-phpspec.xml
