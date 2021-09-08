@@ -8,7 +8,8 @@ on:
     branches: ['main']
 
 env:
-  DOYO_CI: 1
+  COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SYMFONY_DEPRECATIONS_HELPER: disabled=1
 
 jobs:
   php-cs-fixer:
@@ -111,277 +112,270 @@ jobs:
         run: ./vendor/bin/phpstan analyse --no-interaction --no-progress --ansi
         working-directory: api
 
-  # build
-  build:
-    name: Build (Build Docker Image)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: |
-            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-buildx-
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Pull images
-        run: docker-compose pull --ignore-pull-failures || true
-      - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
-      - name: Wait for services
-        run: |
-          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
-            case $status in
-              starting) sleep 1;;
-              healthy) exit 0;;
-              unhealthy)
-                docker-compose ps
-                docker-compose logs
-                exit 1
-              ;;
-            esac
-          done
-          exit 1
-      - name: Check HTTP reachability
-        run: curl -v -o /dev/null http://localhost
-      - name: Check HTTPS reachability
-        run: curl  -vk -o /dev/null https://localhost
-      - name: Stop services
-        run: docker-compose stop
-      - name: Lists existing image
-        run: docker image ls
-        continue-on-error: true
-      - name: Push image
-        run: |
-          docker push ghcr.io/kilip/api-platform-template/php-dev
-          docker push ghcr.io/kilip/api-platform-template/caddy-dev
-          docker push ghcr.io/kilip/api-platform-template/pwa-dev
-        if: github.ref == 'refs/heads/main'
-
-  behat:
-    needs:
-      - php-cs-fixer
-      - psalm
-      - phpstan
-      - build
-    name: 'Behat Testing'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: |
-            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-buildx-
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Pull images
-        run: docker-compose pull --ignore-pull-failures || true
-      - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-      - name: Wait for services
-        run: |
-          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
-            case $status in
-              starting) sleep 1;;
-              healthy) exit 0;;
-              unhealthy)
-                docker-compose ps
-                docker-compose logs
-                exit 1
-              ;;
-            esac
-          done
-          exit 1
-      - name: Prepare Tests
-        run: |
-          ./doyo symfony -e test doctrine:database:create
-          ./doyo symfony -e test doctrine:migrations:migrate -n
-          ./doyo symfony -e test doctrine:schema:create
-      - name: Run Tests
-        run: ./doyo behat --colors
-      - name: Stop services
-        run: docker-compose stop
-      - name: Upload coverage results to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          files: ./api/build/clover/coverage-behat.xml
-          name: behat-php
-          flags: behat
-          fail_ci_if_error: true
-
-  phpunit:
-    needs:
-      - php-cs-fixer
-      - psalm
-      - phpstan
-      - build
-    name: 'PHPUnit Testing'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: |
-            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-buildx-
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Pull images
-        run: docker-compose pull --ignore-pull-failures || true
-      - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-      - name: Wait for services
-        run: |
-          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
-            case $status in
-              starting) sleep 1;;
-              healthy) exit 0;;
-              unhealthy)
-                docker-compose ps
-                docker-compose logs
-                exit 1
-              ;;
-            esac
-          done
-          exit 1
-      - name: Prepare Tests
-        run: |
-          ./doyo symfony -e test doctrine:database:create
-          ./doyo symfony -e test doctrine:migrations:migrate -n
-          ./doyo symfony -e test doctrine:schema:create
-      - name: Run Tests
-        run: ./doyo phpunit --colors --coverage-clover build/logs/clover.xml
-      - name: Stop services
-        run: docker-compose stop
-      - name: Upload coverage results to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          files: ./api/build/logs/clover.xml
-          name: phpunit-php
-          flags: phpunit
-          fail_ci_if_error: true
-
+  # phpspec
   phpspec:
-    needs:
-      - php-cs-fixer
-      - psalm
-      - phpstan
-      - build
-    name: 'PHPSpec Testing'
+    name: PHPSpec (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php:
+          - '7.4'
+          - '8.0'
+        include:
+          - php: '8.0'
+            coverage: true
+      fail-fast: false
+    env:
+      DATABASE_URL: postgres://opensid:opensid@localhost/opensid
+      PGPASSWORD: opensid
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Setup postgres
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -d template1 -c "CREATE USER opensid WITH PASSWORD 'opensid' CREATEDB"
+          createdb -h localhost -p 5432 -U opensid opensid
+          pg_isready -d opensid -h localhost -p 5432 -U opensid
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          key: |
-            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-buildx-
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Pull images
-        run: docker-compose pull --ignore-pull-failures || true
-      - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-      - name: Wait for services
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_pgsql
+          coverage: pcov
+          ini-values: memory_limit=-1
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Enable code coverage
+        if: matrix.coverage
+        run: echo "COVERAGE=1" >> $GITHUB_ENV
+      - name: Update project dependencies
+        run: composer update --no-interaction --no-progress --ansi
+        working-directory: api
+      - name: Prepare Test
         run: |
-          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
-            case $status in
-              starting) sleep 1;;
-              healthy) exit 0;;
-              unhealthy)
-                docker-compose ps
-                docker-compose logs
-                exit 1
-              ;;
-            esac
-          done
-          exit 1
-      - name: Prepare Tests
+          ./bin/console -e test doctrine:database:create
+          ./bin/console -e test doctrine:migrations:migrate
+          ./bin/console -e test doctrine:schema:create
+        working-directory: api
+      - name: Create build dir
+        if: matrix.coverage
+        run: mkdir -p build/logs
+      - name: Run PHPSpec tests
         run: |
-          ./doyo symfony -e test doctrine:database:create
-          ./doyo symfony -e test doctrine:migrations:migrate -n
-          ./doyo symfony -e test doctrine:schema:create
-      - name: Run Tests
-        run: ./doyo phpspec run --ansi -fpretty -c phpspec.coverage.yml
-      - name: Stop services
-        run: docker-compose stop
+          if [ "$COVERAGE" = '1' ]; then
+            ./vendor/bin/phpspec run -fpretty --ansi -c phpspec.coverage.yml
+          else
+            ./vendor/bin/phpspec run -fpretty --ansi
+          fi
+        working-directory: api
       - name: Upload coverage results to Codecov
+        if: matrix.coverage
         uses: codecov/codecov-action@v1
         with:
-          files: ./api/build/logs/phpspec.xml
-          name: phpspec-php
+          files: ./api/build/logs/coverage-phpspec.xml
+          name: phpspec-php${{ matrix.php }}
           flags: phpspec
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
-  pwa:
-    needs:
-      - php-cs-fixer
-      - psalm
-      - phpstan
-      - build
-    name: 'Frontend Testing (PWA)'
+  # phpunit
+  phpunit:
+    name: PHPUnit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php:
+          - '7.4'
+          - '8.0'
+        include:
+          - php: '8.0'
+            coverage: true
+      fail-fast: false
+    env:
+      DATABASE_URL: postgres://opensid:opensid@localhost/opensid
+      PGPASSWORD: opensid
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: |
-            ${{ runner.o }}-buildx-${{ hashFiles('**/.github/workflows/ci.yml','**/docker-compose.yml','**/docker-compose.dev.yml','**/docker/Dockerfile','**/docker/pwa/Dockerfile', '**/pwa/package.json', '**/pwa/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-buildx-
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Pull images
-        run: docker-compose pull --ignore-pull-failures || true
-      - name: Start services
-        run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-      - name: Wait for services
+      - name: Setup postgres
         run: |
-          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
-            case $status in
-              starting) sleep 1;;
-              healthy) exit 0;;
-              unhealthy)
-                docker-compose ps
-                docker-compose logs
-                exit 1
-              ;;
-            esac
-          done
-          exit 1
-      - name: Run Tests
-        run: ./doyo yarn test
-      - name: Stop services
-        run: docker-compose stop
+          sudo systemctl start postgresql
+          sudo -u postgres psql -d template1 -c "CREATE USER opensid WITH PASSWORD 'opensid' CREATEDB"
+          createdb -h localhost -p 5432 -U opensid opensid
+          pg_isready -d opensid -h localhost -p 5432 -U opensid
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_pgsql
+          coverage: pcov
+          ini-values: memory_limit=-1
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Enable code coverage
+        if: matrix.coverage
+        run: echo "COVERAGE=1" >> $GITHUB_ENV
+      - name: Update project dependencies
+        run: composer update --no-interaction --no-progress --ansi
+        working-directory: api
+      - name: Prepare Test
+        run: |
+          ./bin/console -e test doctrine:database:create
+          ./bin/console -e test doctrine:migrations:migrate
+          ./bin/console -e test doctrine:schema:create
+        working-directory: api
+      - name: Create build dir
+        if: matrix.coverage
+        run: mkdir -p build/logs
+      - name: Run PHPUnit tests
+        run: |
+          if [ "$COVERAGE" = '1' ]; then
+            ./vendor/bin/phpunit --coverage-clover build/logs/coverage-phpunit.xml
+          else
+            ./vendor/bin/phpunit
+          fi
+        working-directory: api
       - name: Upload coverage results to Codecov
+        if: matrix.coverage
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./api/build/logs/coverage-phpunit.xml
+          name: phpunit-php${{ matrix.php }}
+          flags: phpunit
+          fail_ci_if_error: false
+
+  # behat
+  behat:
+    name: Behat (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php:
+          - '7.4'
+          - '8.0'
+        include:
+          - php: '8.0'
+            coverage: true
+      fail-fast: false
+    env:
+      DATABASE_URL: postgres://opensid:opensid@localhost/opensid
+      PGPASSWORD: opensid
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup postgres
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -d template1 -c "CREATE USER opensid WITH PASSWORD 'opensid' CREATEDB"
+          createdb -h localhost -p 5432 -U opensid opensid
+          pg_isready -d opensid -h localhost -p 5432 -U opensid
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: pecl, composer
+          extensions: intl, bcmath, curl, openssl, mbstring, pdo_pgsql
+          coverage: pcov
+          ini-values: memory_limit=-1
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Enable code coverage
+        if: matrix.coverage
+        run: echo "COVERAGE=1" >> $GITHUB_ENV
+      - name: Update project dependencies
+        run: composer update --no-interaction --no-progress --ansi
+        working-directory: api
+      - name: Prepare Test
+        run: |
+          ./bin/console -e test doctrine:database:create
+          ./bin/console -e test doctrine:migrations:migrate
+          ./bin/console -e test doctrine:schema:create
+        working-directory: api
+      - name: Create build dir
+        if: matrix.coverage
+        run: mkdir -p build/logs
+      - name: Run Behat tests
+        run: |
+          if [ "$COVERAGE" = '1' ]; then
+            ./vendor/bin/behat --colors --no-interaction --profile=coverage
+          else
+            ./vendor/bin/behat --colors --no-interaction
+          fi
+        working-directory: api
+      - name: Upload coverage results to Codecov
+        if: matrix.coverage
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./api/build/logs/coverage-behat.xml
+          name: behat-php${{ matrix.php }}
+          flags: behat
+          fail_ci_if_error: false
+
+  # jest
+  jest:
+    name: Jest (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node:
+          - '14'
+          - '16'
+        include:
+          - node: '16'
+            coverage: true
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+          cache-dependency-path: pwa/yarn.lock
+      - name: Install dependencies
+        run: yarn
+        working-directory: pwa
+      - name: Enable code coverage
+        if: matrix.coverage
+        run: echo "COVERAGE=1" >> $GITHUB_ENV
+      - name: Running tests
+        run: |
+          if [ "$COVERAGE" = '1' ]; then
+            yarn test
+          else
+            yarn test --coverage=false
+          fi
+        working-directory: pwa
+      - name: Upload coverage results to Codecov
+        if: matrix.coverage
         uses: codecov/codecov-action@v1
         with:
           files: ./pwa/coverage/clover.xml
-          name: pwa-node
-          flags: pwa
-          fail_ci_if_error: true
-        continue-on-error: true
-
+          name: jest-node${{ matrix.node }}
+          flags: jest
+          fail_ci_if_error: false
   # deploy
   #deploy:
   #  if: github.ref == 'refs/heads/main'
