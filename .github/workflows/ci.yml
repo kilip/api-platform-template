@@ -371,6 +371,7 @@ jobs:
           name: pwa-node
           flags: pwa
           fail_ci_if_error: true
+        continue-on-error: true
 
   # deploy
   #deploy:
