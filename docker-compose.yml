@@ -31,7 +31,7 @@ services:
             - php
             - pwa
         environment:
-            #PWA_UPSTREAM: pwa:3000
+            PWA_UPSTREAM: pwa:3000
             SERVER_NAME: ${SERVER_NAME:-localhost, caddy:80}
             MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_PUBLISHER_JWT_KEY:-!ChangeMe!}
             MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_SUBSCRIBER_JWT_KEY:-!ChangeMe!}
@@ -55,6 +55,8 @@ services:
               protocol: udp
 
     pwa:
+        image: ghcr.io/kilip/api-platform-template/pwa-dev
+        container_name: api_template.pwa
         build:
             context: ./
             target: api_template_pwa_dev
