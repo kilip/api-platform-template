@@ -21,7 +21,7 @@ class UserTest extends ApiTestCase
     public function test_get_user()
     {
         $client   = static::createClient();
-        $response = $client->request('GET', '/api/users', []);
+        $client->request('GET', '/users', []);
         $this->assertResponseIsSuccessful();
     }
 }

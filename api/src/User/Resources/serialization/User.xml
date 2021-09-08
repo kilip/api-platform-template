@@ -12,7 +12,6 @@
             <group>admin:user:write</group>
         </attribute>
         <attribute name="plainPassword">
-            <group>admin:user:read</group>
             <group>admin:user:write</group>
         </attribute>
     </class>

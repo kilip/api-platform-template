@@ -1,6 +1,7 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
-    <entity name="App\User\Model\User">
+    <entity name="App\User\Model\User" table="security_user">
         <id name="id">
+            <generator strategy="UUID"/>
         </id>
         <field name="username"/>
         <field name="email"/>
