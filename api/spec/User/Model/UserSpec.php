@@ -23,6 +23,7 @@ class UserSpec extends ObjectBehavior
             'test@example.com'
         );
     }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(User::class);
