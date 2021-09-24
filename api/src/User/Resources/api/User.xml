@@ -1,10 +1,11 @@
 <resources xmlns="https://api-platform.com/schema/metadata">
     <resource class="App\User\Model\User">
+        <attribute name="security">is_granted('ROLE_USER')</attribute>
         <attribute name="normalization_context">
-            <attribute name="groups">admin:user:read</attribute>
+            <attribute name="groups">user:read</attribute>
         </attribute>
         <attribute name="denormalization_context">
-            <attribute name="groups">admin:user:write</attribute>
+            <attribute name="groups">user:write</attribute>
         </attribute>
 
         <itemOperations>

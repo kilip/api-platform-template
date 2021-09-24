@@ -1,5 +1,5 @@
 api_platform:
-    patch_formats:
-        json: ['application/merge-patch+json']
-    swagger:
-        versions: [3]
+  patch_formats:
+    json: ['application/merge-patch+json']
+  swagger:
+    versions: [3]

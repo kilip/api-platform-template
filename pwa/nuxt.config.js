@@ -1,16 +1,14 @@
 export default {
-  server: {
-    host: '0.0.0.0'
-  },
-  // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
-
-  // Target: https://go.nuxtjs.dev/config-target
+  env: {
+    entrypoint: process.env.API_ENTRYPOINT || 'https://localhost/api',
+  },
+  server: {
+    host: "0.0.0.0"
+  },
   target: 'static',
-
-  // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'pwa',
+    title: 'api-template',
     htmlAttrs: {
       lang: 'en'
     },
@@ -38,17 +36,60 @@ export default {
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
-    // https://go.nuxtjs.dev/eslint
-    '@nuxtjs/eslint-module',
+    // https://go.nuxtjs.dev/typescript
+    '@nuxt/typescript-build',
+    // https://go.nuxtjs.dev/tailwindcss
+    '@nuxtjs/tailwindcss',
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    // https://go.nuxtjs.dev/bootstrap
-    'bootstrap-vue/nuxt',
+    '@nuxtjs/axios',
+    '@nuxtjs/auth-next'
   ],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+  },
+  router: {
+    middleware: ['auth']
+  },
+  axios: {
+    credentials: true
+  },
+  auth: {
+    strategies: {
+      local: {
+        cookie: {
+          name: null,
+        },
+        user: {
+          autoFetch: true
+        },
+        endpoints: {
+          login: {
+            url: 'https://localhost/login-json',
+            method: 'post',
+            withCredentials: true
+          },
+          logout: {
+            url: 'https://localhost/logout',
+            method: 'post',
+            withCredentials: true
+          },
+          user: {
+            url: 'https://localhost/api/users/profile',
+            method: 'get',
+            withCredentials: true,
+            propertyName: false
+          }
+        },
+        scheme: '~/utils/auth/jwt.js',
+        token: {
+          required: false,
+          type: false
+        }
+      }
+    },
   }
 }

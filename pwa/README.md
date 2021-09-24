@@ -1,4 +1,4 @@
-# pwa
+# api-template
 
 ## Build Setup
 

@@ -126,6 +126,9 @@
     "doctrine/sql-formatter": {
         "version": "1.1.1"
     },
+    "doyo/alice-bundle": {
+        "version": "2.9.0"
+    },
     "doyo/compose": {
         "version": "1.x-dev"
     },
@@ -183,31 +186,38 @@
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.5"
     },
-    "hautelook/alice-bundle": {
-        "version": "2.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "2.1",
-            "ref": "ff94d76b2ec0c552b5d67d401f59ab8fd62f3d5f"
-        },
-        "files": [
-            "config/packages/dev/hautelook_alice.yaml",
-            "config/packages/test/hautelook_alice.yaml",
-            "fixtures/.gitignore"
-        ]
-    },
     "justinrainbow/json-schema": {
         "version": "5.2.11"
     },
     "laminas/laminas-code": {
         "version": "4.4.2"
     },
+    "lcobucci/clock": {
+        "version": "2.0.0"
+    },
+    "lcobucci/jwt": {
+        "version": "4.1.4"
+    },
+    "lexik/jwt-authentication-bundle": {
+        "version": "2.5",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "2.5",
+            "ref": "5b2157bcd5778166a5696e42f552ad36529a07a6"
+        },
+        "files": [
+            "config/packages/lexik_jwt_authentication.yaml"
+        ]
+    },
     "monolog/monolog": {
         "version": "2.3.2"
     },
     "myclabs/deep-copy": {
         "version": "1.10.2"
+    },
+    "namshi/jose": {
+        "version": "7.2.3"
     },
     "nelmio/alice": {
         "version": "3.2",
@@ -551,6 +561,9 @@
     },
     "symfony/polyfill-mbstring": {
         "version": "v1.23.1"
+    },
+    "symfony/polyfill-php56": {
+        "version": "v1.20.0"
     },
     "symfony/polyfill-php73": {
         "version": "v1.23.0"

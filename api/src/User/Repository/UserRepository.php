@@ -13,11 +13,14 @@ namespace App\User\Repository;
 
 use App\User\Model\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
-class UserRepository extends ServiceEntityRepository implements UserLoaderInterface
+class UserRepository extends EntityRepository implements UserLoaderInterface
 {
+
     /**
      * @throws NonUniqueResultException
      * @psalm-suppress MixedReturnStatement
