@@ -1,0 +1,7 @@
+parameters:
+  hashed_password: '$argon2id$v=19$m=65536,t=4,p=1$5vsNDRIY7apu/iG0W1sEcw$lNPqu4lar9jUg3lR17+CrAsIhwOl+8tN1RYUD/ZeHSw'
+App\User\Model\User:
+  test:
+    username: test
+    email: test@example.com
+    password: <{hashed_password}>

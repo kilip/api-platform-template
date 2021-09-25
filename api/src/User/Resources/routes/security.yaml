@@ -1,0 +1,9 @@
+user_login:
+  path: /login-json
+  methods: ['POST']
+
+user_logout:
+  path: /logout
+  methods: ['GET']
+  defaults:
+    _controller: 'opensid.app.controllers.logout'
